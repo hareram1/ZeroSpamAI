@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Analytics Dashboard</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      padding: 30px;
+      background-color: #f8f9fa;
+    }
+    .card {
+      margin-bottom: 30px;
+    }
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2 class="text-center mb-5">📊 URL Scan Analytics</h2>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">Prediction Summary</div>
+        <div class="card-body">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-warning text-dark">Risk Factor Occurrences</div>
+        <div class="card-body">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card shadow">
+        <div class="card-header bg-info text-white">Scan Confidence Over Time</div>
+        <div class="card-body">
+          <canvas id="lineChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Pie Chart: Phishing vs Legit
+  const pieChart = new Chart(document.getElementById("pieChart"), {
+    type: 'pie',
+    data: {
+      labels: ['Phishing', 'Legit'],
+      datasets: [{
+        label: 'Scans',
+        data: [{{ phishing }}, {{ legit }}],
+        backgroundColor: ['#dc3545', '#28a745']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+
+  // Bar Chart: Risk Factor Counts
+  const riskLabels = {{ risk_counts.keys()|list|tojson }};
+  const riskData = {{ risk_counts.values()|list|tojson }};
+
+  const barChart = new Chart(document.getElementById("barChart"), {
+    type: 'bar',
+    data: {
+      labels: riskLabels,
+      datasets: [{
+        label: 'Count',
+        data: riskData,
+        backgroundColor: '#ffc107'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Line Chart: Confidence Over Time
+  const timeLabels = {{ timestamps|tojson }};
+  const confidenceData = {{ confidences|tojson }};
+
+  const lineChart = new Chart(document.getElementById("lineChart"), {
+    type: 'line',
+    data: {
+      labels: timeLabels,
+      datasets: [{
+        label: 'Confidence (%)',
+        data: confidenceData,
+        fill: false,
+        borderColor: '#17a2b8',
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, max: 100 }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

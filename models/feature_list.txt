@@ -1,0 +1,9 @@
+url_length
+has_https
+num_subdomains
+has_special_char
+is_shortened
+domain_age
+contains_ip
+has_port
+suspicious_tld

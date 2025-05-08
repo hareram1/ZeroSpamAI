@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spam Detector</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      padding-top: 40px;
+      background-color: #f8f9fa;
+    }
+
+    .meter {
+      height: 20px;
+      background: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .meter-bar {
+      height: 100%;
+      transition: width 0.5s ease-in-out;
+    }
+
+    .spinner-border {
+      display: none;
+      margin-top: 15px;
+    }
+
+    .card {
+      margin-top: 30px;
+    }
+
+    .risk-list li {
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2 class="text-center mb-4">🔎 Spam / Phishing URL Detector</h2>
+
+  <form method="POST" onsubmit="showSpinner()">
+    <div class="form-group">
+      <input type="text" class="form-control" name="url" placeholder="Enter URL here..." required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Scan URL</button>
+    <div class="text-center">
+      <div class="spinner-border text-info" role="status" id="loadingSpinner">
+        <span class="sr-only">Scanning...</span>
+      </div>
+    </div>
+  </form>
+
+  {% if result %}
+    {% set color = "#28a745" %}
+    {% if result.confidence >= 70 %}
+      {% set color = "#dc3545" %}
+    {% elif result.confidence >= 30 %}
+      {% set color = "#ffc107" %}
+    {% endif %}
+
+    <div class="card text-center mt-4">
+      <div class="card-header font-weight-bold">
+        Scan Result
+      </div>
+      <div class="card-body">
+        <h4 class="card-title">{{ result.label }}</h4>
+        <p><strong>Threat Confidence:</strong> {{ result.confidence }}%</p>
+        <div class="meter mt-2">
+          <div class="meter-bar" style="width: {{ result.confidence }}%; background-color: {{ color }};"></div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if risk_factors %}
+  <div class="card mt-3">
+    <div class="card-header">
+      🚨 Potential Risk Factors
+    </div>
+    <ul class="list-group list-group-flush risk-list">
+      {% for factor in risk_factors %}
+        <li class="list-group-item">{{ factor }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if whois_summary %}
+  <div class="card">
+    <div class="card-header bg-info text-white">
+      🌐 Domain Information
+    </div>
+    <div class="card-body">
+      <p><strong>Registrar:</strong> {{ whois_summary.registrar }}</p>
+      <p><strong>SSL Secured:</strong> {{ "Yes" if whois_summary.uses_https else "No" }}</p>
+      <p><strong>Registration Date:</strong> {{ whois_summary.registration_date }}</p>
+      <p><strong>Domain Age:</strong> {{ whois_summary.domain_age_days }} days</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if top_features %}
+  <div class="card mt-3">
+    <div class="card-header bg-warning text-dark">
+      🧠 Top Features Influencing This Scan
+    </div>
+    <div class="card-body">
+      <ul class="list-group">
+        {% for feature, impact in top_features %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ feature }}
+          <span class="badge badge-pill {% if impact > 0 %}badge-success{% else %}badge-danger{% endif %}">
+            {{ "%.3f"|format(impact) }}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('analytics') }}" class="btn btn-outline-primary">📊 View Analytics Dashboard</a>
+  </div>
+  
+
+    {% if result %}
+    <div class="text-center mt-3">
+    <a href="{{ url_for('download_report') }}" class="btn btn-outline-dark" target="_blank">📄 Download PDF Report</a>
+    </div>
+    {% endif %}
+
+
+  {% if history %}
+  <div class="card mt-4">
+    <div class="card-header bg-secondary text-white">
+      🕓 Scan History (Last 5 URLs)
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered table-sm table-hover bg-white">
+        <thead class="thead-light">
+          <tr>
+            <th>Timestamp</th>
+            <th>URL</th>
+            <th>Result</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in history %}
+          <tr>
+            <td>{{ entry.timestamp }}</td>
+            <td>{{ entry.url }}</td>
+            <td>{{ entry.label }}</td>
+            <td>{{ entry.confidence }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function showSpinner() {
+    document.getElementById("loadingSpinner").style.display = "inline-block";
+  }
+</script>
+</body>
+</html>
