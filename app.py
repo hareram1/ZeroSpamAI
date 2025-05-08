@@ -86,24 +86,6 @@ def home():
 
                 features = features_df.iloc[0].to_dict()
 
-                # SHAP explanation (optional)
-                # try:
-                #     explainer = shap.TreeExplainer(model)
-                #     shap_vals = explainer.shap_values(features_df)
-                #     if isinstance(shap_vals, list) and len(shap_vals) == 2:
-                #         shap_values_for_class = shap_vals[int(prediction)][0]
-                #     else:
-                #         shap_values_for_class = shap_vals[0]
-                #     feature_impact = sorted(
-                #         zip(features_df.columns, shap_values_for_class),
-                #         key=lambda x: abs(x[1]),
-                #         reverse=True
-                #     )
-                #     top_features = feature_impact[:5]
-                # except Exception as e:
-                #     logger.warning(f"SHAP explanation failed: {str(e)}")
-                #     top_features = []
-
                 if features['contains_ip'] == 1.0:
                     risk_factors.append("Contains IP address")
                 if features['has_port'] == 1.0:
